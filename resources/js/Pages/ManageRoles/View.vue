@@ -101,7 +101,7 @@ const rows = ref([
                                 </template>
                                 <template #body-end-actions>
                                     <td>
-                                        <div class="mt-1 flex gap-3">
+                                        <div class="mt-1 flex flex-wrap gap-3">
                                             <button class="btn btn-sm btn-warning">
                                                 Edit Role
                                             </button>
