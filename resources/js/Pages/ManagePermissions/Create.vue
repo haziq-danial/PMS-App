@@ -24,6 +24,10 @@ const user = "Admin";
                                 </div>
                             </div>
                         </div>
+                        <div class="flex items-center justify-end gap-x-6">
+                            <a :href="route('manage-permissions.index')" class="btn btn-ghost">Cancel</a>
+                            <button class="btn btn-primary">Save</button>
+                        </div>
                     </div>
                 </div>
             </div>
