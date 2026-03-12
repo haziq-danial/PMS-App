@@ -35,7 +35,7 @@ const rows = ref([
                     <div class="card-body p-2">
                         <!-- table header -->
                         <div class="flex p-10 pb-0 pt-5 justify-end gap-3">
-                            <a href="#" class="btn btn-primary">
+                            <a :href="route('manage-permissions.create')" class="btn btn-primary">
                                 <PlusIcon class="size-[1.2em]" />
                                 New Permission
                             </a>

@@ -19,7 +19,7 @@ class ManagePermissionsController extends Controller
      */
     public function create()
     {
-        //
+        return inertia('ManagePermissions/Create');
     }
 
     /**
