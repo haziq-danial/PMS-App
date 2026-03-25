@@ -4,6 +4,9 @@ import PlusIcon from '../../Components/Icons/PlusIcon.vue';
 import DataTable from '../../Components/DataTable.vue';
 import PageHeader from '../../Components/PageHeader.vue';
 
+import PencilIcon from '../../Components/Icons/PencilIcon.vue';
+import TrashIcon from '../../Components/Icons/TrashIcon.vue';
+
 const title = "Manage Roles";
 const pageTitle = ` | ${title}`;
 const user = "Admin";
@@ -103,10 +106,12 @@ const rows = ref([
                                     <td>
                                         <div class="mt-1 flex flex-wrap gap-3">
                                             <button class="btn btn-sm btn-warning">
-                                                Edit Role
+                                                Edit
+                                                <PencilIcon stroke-width="2" class="size-[1.7em]"/>
                                             </button>
                                             <button class="btn btn-sm btn-error">
-                                                Delete Role
+                                                Delete
+                                                <TrashIcon stroke-width="2" class="size-[1.7em]"/>
                                             </button>
                                         </div>
                                     </td>
