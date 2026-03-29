@@ -43,7 +43,7 @@ const rows = ref([
                             </a>
                         </div>
                         <div class="mt-0 pt-0 overflow-x-auto p-10">
-                            <DataTable :columns="columns" :items="rows" class="table table-fixed w-full">
+                            <DataTable :columns="columns" :items="rows" class="table table-fixed w-full table-zebra">
                                 <template #header-id="{ col }">
                                     <th class="w-1/12 whitespace-nowrap text-left">{{ col.label }}</th>
                                 </template>
