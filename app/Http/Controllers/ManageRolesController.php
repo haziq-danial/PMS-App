@@ -15,7 +15,13 @@ class ManageRolesController extends Controller
      */
     public function index()
     {
-        $roles = Role::all();
+        $roles = Role::all()->map(function ($role) {
+            return [
+                'id' => $role->id,
+                'roles' => $role->name,
+                'permissions' => $role->permissions->pluck('name')->toArray()
+            ];
+        });
         return inertia('ManageRoles/View', compact('roles'));
     }
 
@@ -47,7 +53,7 @@ class ManageRolesController extends Controller
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        return redirect()->route('manage-permissions.index')->with('success', 'Role Created!');
+        return redirect()->route('manage-roles.index')->with('success', 'Role Created!');
     }
 
     /**
