@@ -11,62 +11,14 @@ const title = "Manage Roles";
 const pageTitle = ` | ${title}`;
 const user = "Admin";
 
+const props = defineProps({
+    roles: Array
+});
+
 const columns = [
     { key: 'roles', label: 'Roles' },
     { key: 'permissions', label: 'Permissions' },
 ];
-
-
-const rows = ref([
-    {
-        id: 1,
-        roles: 'Admin',
-        permissions: [
-            'can_manage_users',
-            'can_manage_roles',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-        ],
-    },
-    {
-        id: 2,
-        roles: 'Users',
-        permissions: [
-            'can_manage_users',
-            'can_manage_roles',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-            'can_manage_permissions',
-        ],
-    }
-]);
 
 </script>
 <template>
@@ -86,7 +38,7 @@ const rows = ref([
                             </a>
                         </div>
                         <div class="mt-0 pt-0 overflow-x-auto p-10">
-                            <DataTable class="table table-fixed w-full" :columns="columns" :items="rows">
+                            <DataTable class="table table-zebra table-fixed w-full" :columns="columns" :items="roles">
                                 <template #header-roles="{ col }">
                                     <th class="w-1/12 whitespace-nowrap text-left">{{ col.label }}</th>
                                 </template>
@@ -98,8 +50,10 @@ const rows = ref([
                                 </template>
                                 
                                 <template #permissions="{ item }">
-                                    <td class="text-left mt-2 flex flex-wrap gap-2">
-                                        <div v-for="item in item.permissions" class="badge badge-neutral">{{ item }}</div>
+                                    <td class="text-left">
+                                        <div class=" mt-2 flex flex-wrap gap-2">
+                                            <div v-for="item in item.permissions" class="badge badge-neutral">{{ item }}</div>
+                                        </div>
                                     </td>
                                 </template>
                                 <template #body-end-actions>
