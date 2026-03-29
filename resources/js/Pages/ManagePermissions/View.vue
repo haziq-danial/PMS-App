@@ -9,19 +9,23 @@ const title = "Manage Permissions";
 const pageTitle = ` | ${title}`;
 const user = "Admin";
 
+const props = defineProps({
+    permissions: Array
+});
+
 const columns = [
     { key: 'id', label: '#' },
-    { key: 'permission_name', label: 'Permission Name' }
+    { key: 'name', label: 'Permission Name' }
 ];
 
 const rows = ref([
     {
         id: 1,
-        permission_name: 'can_manage_roles'
+        name: 'can_manage_roles'
     },
     {
         id: 2,
-        permission_name: 'can_manage_users'
+        name: 'can_manage_users'
     }
 ]);
 </script>
@@ -43,7 +47,7 @@ const rows = ref([
                             </a>
                         </div>
                         <div class="mt-0 pt-0 overflow-x-auto p-10">
-                            <DataTable :columns="columns" :items="rows" class="table table-fixed w-full table-zebra">
+                            <DataTable :columns="columns" :items="permissions" class="table table-fixed w-full table-zebra">
                                 <template #header-id="{ col }">
                                     <th class="w-1/12 whitespace-nowrap text-left">{{ col.label }}</th>
                                 </template>
