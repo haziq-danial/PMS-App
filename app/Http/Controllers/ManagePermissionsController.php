@@ -36,7 +36,7 @@ class ManagePermissionsController extends Controller
         Permission::create(['name' => $request->name]);
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        return back()->with('Success', 'Permission Created!');
+        return back()->with('success', 'Permission Created!');
     }
 
     /**
