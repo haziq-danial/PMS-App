@@ -59,7 +59,9 @@ const submit = () => {
                             </div>
                             <div class="flex items-center justify-end gap-x-6 border-t border-black/10 pt-8">
                                 <a :href="route('manage-roles.index')" class="btn btn-ghost">Cancel</a>
-                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="submit" class="btn btn-primary" :disabled="form.processing">
+                                    {{ form.processing ? 'Sending...' : 'Submit' }}
+                                </button>
                             </div>
                         </div>
                     </form>
