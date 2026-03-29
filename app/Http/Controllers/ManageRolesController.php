@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class ManageRolesController extends Controller
 {
@@ -12,7 +15,8 @@ class ManageRolesController extends Controller
      */
     public function index()
     {
-        return inertia('ManageRoles/View');
+        $roles = Role::all();
+        return inertia('ManageRoles/View', compact('roles'));
     }
 
     /**
@@ -20,7 +24,13 @@ class ManageRolesController extends Controller
      */
     public function create()
     {
-        return inertia('ManageRoles/Create');
+        $permissions = Permission::all()->map(function ($permission) {
+            return [
+                'id' => $permission->id,
+                'label' => $permission->name
+            ];
+        });
+        return inertia('ManageRoles/Create', compact('permissions'));
     }
 
     /**
@@ -28,7 +38,16 @@ class ManageRolesController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate(['name' => 'required|unique:roles,name', 'selected_permissions' => 'array']);
+
+        $role = Role::create(['name' => $request->name]);
+
+        if ($request->has('selected_permissions')) {
+            $role->syncPermissions($request->selected_permissions);
+        }
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        return redirect()->route('manage-permissions.index')->with('success', 'Role Created!');
     }
 
     /**
