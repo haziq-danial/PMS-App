@@ -18,7 +18,7 @@ defineProps({
     },
     input_name: {
         type: String,
-        required: true
+        required: false
     },
     input_type: {
         type: String,
