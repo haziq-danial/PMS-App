@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 class ManagePermissionsController extends Controller
 {
@@ -11,7 +13,9 @@ class ManagePermissionsController extends Controller
      */
     public function index()
     {
-        return inertia('ManagePermissions/View');
+        $permissions = Permission::all();
+        // dd(compact('permissions'));
+        return inertia('ManagePermissions/View', compact('permissions'));
     }
 
     /**
@@ -27,7 +31,12 @@ class ManagePermissionsController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate(['name' => 'required|unique:permissions,name']);
+
+        Permission::create(['name' => $request->name]);
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        return back()->with('Success', 'Permission Created!');
     }
 
     /**
