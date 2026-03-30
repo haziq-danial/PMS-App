@@ -1,5 +1,5 @@
 <template>
-    <input type="radio" :name="radio_name" class="radio" :value="value" :id="identifier"/>
+    <input v-model="model" type="radio" :name="radio_name" class="radio" :value="value" :id="identifier"/>
     <label class="label" :for="identifier">{{ label }}</label>
 </template>
 <script setup>
@@ -21,4 +21,5 @@
             required: true
         }
     });
+    const model = defineModel();
 </script>
