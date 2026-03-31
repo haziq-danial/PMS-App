@@ -1,14 +1,17 @@
 <template>
     <div>
+
         <Head :title="pageTitle"></Head>
         <PageHeader :title="title" :user-type="user" />
         <div class="mt-6">
             <div class="flex flex-col gap-6 md:flex-row md:flex-wrap">
                 <div class="p-6 bg-white rounded-lg shadow flex-1">
                     <!-- table header -->
-                    <div class="flex justify-between items-center">
-                        <button class="btn btn-neutral">Neutral</button>
-                        <a :href="route('manage-users.create')" class="btn btn-primary">New User</a>
+                    <div class="flex p-10 pb-0 pt-5 justify-end gap-3">
+                        <a :href="route('manage-users.create')" class="btn btn-primary">
+                            <PlusIcon class="size-[1.2em]" />
+                            New User
+                        </a>
                     </div>
                     <div class="mt-3 overflow-x-auto">
                         <table class="table">
@@ -161,6 +164,7 @@
 </template>
 
 <script setup>
+import PlusIcon from '../../Components/Icons/PlusIcon.vue';
 import PageHeader from '../../Components/PageHeader.vue';
 const title = 'Manage Users';
 const pageTitle = ` | ${title}`;

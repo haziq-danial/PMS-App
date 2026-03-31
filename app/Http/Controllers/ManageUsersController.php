@@ -28,7 +28,23 @@ class ManageUsersController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'matric_no' => 'required',
+            'full_name' => 'required',
+            'email' => 'required',
+            'mobile_no' => 'required',
+            'date_of_birth' => 'required',
+            'gender' => 'required',
+            'street_address' => 'required',
+            'city' => 'required',
+            'state' => 'required',
+            'postal_code' => 'required',
+            'password' => 'required',
+            'confirm_password' => 'required'
+        ]);
+        dd($request);
+
+        // return redirect()->route('manage-users.index')->with('success', 'User Created!');
     }
 
     /**

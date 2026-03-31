@@ -21,6 +21,7 @@ Route::get('/dashboard', function () {
 Route::prefix('manage-users')->name('manage-users.')->controller(ManageUsersController::class)->group(function () {
     Route::get('/', 'index')->name('index');
     Route::get('/create', 'create')->name('create');
+    Route::post('/store', 'store')->name('store');
 });
 
 Route::prefix('manage-roles')
