@@ -1,10 +1,11 @@
 <script setup>
 import { ref } from 'vue';
-import DataTable from '../../Components/DataTable.vue';
+// import DataTable from '../../Components/DataTable.vue';
 import PlusIcon from '../../Components/Icons/PlusIcon.vue';
-import PencilIcon from '../../Components/Icons/PencilIcon.vue';
-import TrashIcon from '../../Components/Icons/TrashIcon.vue';
 import PageHeader from '../../Components/PageHeader.vue';
+import { DataTable, Column, Button } from 'primevue';
+
+
 const title = "Manage Permissions";
 const pageTitle = ` | ${title}`;
 const user = "Admin";
@@ -47,27 +48,17 @@ const rows = ref([
                             </a>
                         </div>
                         <div class="mt-0 pt-0 overflow-x-auto p-10">
-                            <DataTable :columns="columns" :items="permissions" class="table table-fixed w-full table-zebra">
-                                <template #header-id="{ col }">
-                                    <th class="w-1/12 whitespace-nowrap text-left">{{ col.label }}</th>
-                                </template>
-                                <template #header-end-actions>
-                                    <th></th>
-                                </template>
-                                <template #body-end-actions>
-                                    <td>
-                                        <div class="mt-1 flex flex-wrap gap-3">
-                                            <button class="btn btn-sm btn-warning">
-                                                Edit
-                                                <PencilIcon stroke-width="2" class="size-[1.7em]"/>
-                                            </button>
-                                            <button class="btn btn-sm btn-error">
-                                                Delete
-                                                <TrashIcon stroke-width="2" class="size-[1.7em]"/>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </template>
+                            <DataTable :value="permissions" paginator rows="5">
+                                <template #empty> No permissions found </template>
+                                <Column field="id" header="#"></Column>
+                                <Column field="name" header="Name"></Column>
+                                <Column headerStyle="width: 5rem; text-align: center"
+                                    bodyStyle="text-align: center; overflow: visible; display: flex; gap: 10px;">
+                                    <template #body>
+                                        <Button type="button" icon="pi pi-pencil" severity="secondary" variant="outlined" rounded />
+                                        <Button type="button" icon="pi pi-trash" severity="danger" variant="outlined" rounded />
+                                    </template>
+                                </Column>
                             </DataTable>
                         </div>
                     </div>
