@@ -1,6 +1,5 @@
 <script setup>
 import { ref } from 'vue';
-// import DataTable from '../../Components/DataTable.vue';
 import PlusIcon from '../../Components/Icons/PlusIcon.vue';
 import PageHeader from '../../Components/PageHeader.vue';
 import { DataTable, Column, Button } from 'primevue';
@@ -14,21 +13,6 @@ const props = defineProps({
     permissions: Array
 });
 
-const columns = [
-    { key: 'id', label: '#' },
-    { key: 'name', label: 'Permission Name' }
-];
-
-const rows = ref([
-    {
-        id: 1,
-        name: 'can_manage_roles'
-    },
-    {
-        id: 2,
-        name: 'can_manage_users'
-    }
-]);
 </script>
 
 <template>
@@ -38,17 +22,17 @@ const rows = ref([
         <PageHeader :title="title" :user-type="user" />
         <div class="mt-6">
             <div class="flex md:flex-row md:flex-wrap">
-                <div class="card w-full gap-0 bg-white rounded-md shadow">
+                <div class="card w-full gap-0 bg-white overflow-visible rounded-md shadow">
                     <div class="card-body p-2">
                         <!-- table header -->
-                        <div class="flex p-10 pb-0 pt-5 justify-end gap-3">
+                        <div class="flex p-10 pb-0 pt-5 justify-end gap-3 w">
                             <a :href="route('manage-permissions.create')" class="btn btn-primary">
                                 <PlusIcon class="size-[1.2em]" />
                                 New Permission
                             </a>
                         </div>
                         <div class="mt-0 pt-0 overflow-x-auto p-10">
-                            <DataTable :value="permissions" paginator rows="5">
+                            <DataTable :value="permissions" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]">
                                 <template #empty> No permissions found </template>
                                 <Column field="id" header="#"></Column>
                                 <Column field="name" header="Name"></Column>

@@ -1,11 +1,8 @@
 <script setup>
-import {ref} from 'vue';
 import PlusIcon from '../../Components/Icons/PlusIcon.vue';
-import DataTable from '../../Components/DataTable.vue';
 import PageHeader from '../../Components/PageHeader.vue';
 
-import PencilIcon from '../../Components/Icons/PencilIcon.vue';
-import TrashIcon from '../../Components/Icons/TrashIcon.vue';
+import { DataTable, Column, Button } from 'primevue';
 
 const title = "Manage Roles";
 const pageTitle = ` | ${title}`;
@@ -38,38 +35,31 @@ const columns = [
                             </a>
                         </div>
                         <div class="mt-0 pt-0 overflow-x-auto p-10">
-                            <DataTable class="table table-zebra table-fixed w-full" :columns="columns" :items="roles">
-                                <template #header-roles="{ col }">
-                                    <th class="w-1/12 whitespace-nowrap text-left">{{ col.label }}</th>
-                                </template>
-                                <template #header-permissions="{ col }">
-                                    <th class="w-4/5 whitespace-nowrap text-left">{{ col.label }}</th>
-                                </template>
-                                <template #header-end-actions>
-                                    <th></th>
-                                </template>
-                                
-                                <template #permissions="{ item }">
-                                    <td class="text-left">
-                                        <div class=" mt-2 flex flex-wrap gap-2">
-                                            <div v-for="item in item.permissions" class="badge badge-neutral">{{ item }}</div>
+                            <DataTable :value="roles" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]">
+                                <template #empty> No roles found </template>
+                                <Column field="id" header="#"></Column>
+                                <Column field="roles" header="Name"></Column>
+                                <Column field="permissions" header="Permissions">
+                                    <template #body="slotProps">
+                                        <div class="flex flex-wrap gap-2">
+                                            <div v-for="item in slotProps.data.permissions" :key="item"
+                                                class="badge badge-soft badge-primary">{{ item }}</div>
                                         </div>
-                                    </td>
-                                </template>
-                                <template #body-end-actions>
-                                    <td>
-                                        <div class="mt-1 flex flex-wrap gap-3">
-                                            <button class="btn btn-sm btn-warning">
-                                                Edit
-                                                <PencilIcon stroke-width="2" class="size-[1.7em]"/>
-                                            </button>
-                                            <button class="btn btn-sm btn-error">
-                                                Delete
-                                                <TrashIcon stroke-width="2" class="size-[1.7em]"/>
-                                            </button>
+                                    </template>
+                                </Column>
+                                <Column :pt="{
+                                    headerCell: { class: 'w-1 text-center' },
+                                    bodyCell: { class: 'text-center' }
+                                }">
+                                    <template #body>
+                                        <div class="flex gap-1.5 justify-center" style="white-space: nowrap;">
+                                            <Button type="button" icon="pi pi-pencil" severity="secondary"
+                                                variant="outlined" rounded />
+                                            <Button type="button" icon="pi pi-trash" severity="danger"
+                                                variant="outlined" rounded />
                                         </div>
-                                    </td>
-                                </template>
+                                    </template>
+                                </Column>
                             </DataTable>
                         </div>
                     </div>
