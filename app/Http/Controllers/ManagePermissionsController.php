@@ -11,19 +11,23 @@ class ManagePermissionsController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $permissions = Permission::all();
-        // dd(compact('permissions'));
-        return inertia('ManagePermissions/View', compact('permissions'));
-    }
+        // Map the front-end column keys to real DB columns for safe sorting.
+        $sortable = ['id' => 'id', 'name' => 'name'];
+        $sort = $sortable[$request->query('sort')] ?? 'id';
+        $direction = $request->query('direction') === 'desc' ? 'desc' : 'asc';
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return inertia('ManagePermissions/Create');
+        $permissions = Permission::query()
+            ->orderBy($sort, $direction)
+            ->paginate($request->integer('per_page', 5))
+            ->withQueryString()
+            ->through(fn ($permission) => [
+                'id' => $permission->id,
+                'name' => $permission->name,
+            ]);
+
+        return inertia('ManagePermissions/View', compact('permissions'));
     }
 
     /**
@@ -48,19 +52,17 @@ class ManagePermissionsController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate(['name' => 'required|unique:permissions,name,' . $id]);
+
+        $permission = Permission::findOrFail($id);
+        $permission->update(['name' => $request->name]);
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        return redirect()->route('manage-permissions.index')->with('success', 'Permission Updated!');
     }
 
     /**
@@ -68,6 +70,10 @@ class ManagePermissionsController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $permission = Permission::findOrFail($id);
+        $permission->delete();
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        return redirect()->route('manage-permissions.index')->with('success', 'Permission Deleted!');
     }
 }

@@ -27,15 +27,15 @@ Route::prefix('manage-users')->name('manage-users.')->controller(ManageUsersCont
 Route::prefix('manage-roles')
     ->name('manage-roles.')->controller(ManageRolesController::class)->group(function () {
     Route::get('/', 'index')->name('index');
-    Route::get('/create', 'create')->name('create');
-    Route::get('/edit/{role_id}', 'edit')->name('edit');
     Route::post('/store', 'store')->name('store');
+    Route::put('/update/{role_id}', 'update')->name('update');
+    Route::delete('/{role_id}', 'destroy')->name('destroy');
 });
 
 Route::prefix('manage-permissions')
     ->name('manage-permissions.')->controller(ManagePermissionsController::class)->group(function () {
     Route::get('/', 'index')->name('index');
-    Route::get('/create', 'create')->name('create');
-    Route::get('/edit/{permission_id}', 'edit')->name('edit');
     Route::post('/store', 'store')->name('store');
+    Route::put('/update/{permission_id}', 'update')->name('update');
+    Route::delete('/{permission_id}', 'destroy')->name('destroy');
 });

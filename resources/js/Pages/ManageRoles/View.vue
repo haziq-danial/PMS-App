@@ -1,7 +1,9 @@
 <script setup>
-import { h, ref, watch } from 'vue';
-import { router, useForm } from '@inertiajs/vue3';
+import { h, ref, watch, computed } from 'vue';
+import { useForm } from '@inertiajs/vue3';
 import { Plus, Pencil, Trash2, ArrowUpDown } from '@lucide/vue';
+import { useServerTable } from '@/composables/useServerTable';
+import { useDeleteResource } from '@/composables/useDeleteResource';
 import PageHeader from '@/Components/PageHeader.vue';
 import DataTable from '@/Components/DataTable/DataTable.vue';
 import GroupInput from '@/Components/FormInputs/GroupInput.vue';
@@ -18,8 +20,17 @@ import {
     DialogDescription,
     DialogFooter,
     DialogClose,
-    DialogTrigger,
 } from '@/Components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
 
 const title = 'Manage Roles';
 const pageTitle = ` | ${title}`;
@@ -28,75 +39,89 @@ const user = 'Admin';
 const props = defineProps({
     // Laravel paginator payload: { data, total, current_page, per_page, ... }
     roles: Object,
-    // Options for the create-role permission picker: [{ id, label }]
+    // Options for the permission picker: [{ id, label }]
     permissions: Array,
 });
 
 /* ---------------------------------------------------------------------------
  * Server-side table state
  * ------------------------------------------------------------------------- */
-const sorting = ref([]);
-const pagination = ref({
-    pageIndex: (props.roles?.current_page ?? 1) - 1,
-    pageSize: props.roles?.per_page ?? 5,
+const { sorting, pagination, loading } = useServerTable({
+    routeName: 'manage-roles.index',
+    paginator: props.roles,
+    only: ['roles'],
 });
-const loading = ref(false);
-
-watch(() => pagination.value.pageSize, (size, prev) => {
-    if (size !== prev && pagination.value.pageIndex !== 0) {
-        pagination.value = { ...pagination.value, pageIndex: 0 };
-    }
-});
-
-watch([sorting, pagination], () => {
-    const sort = sorting.value[0];
-    router.get(route('manage-roles.index'), {
-        page: pagination.value.pageIndex + 1,
-        per_page: pagination.value.pageSize,
-        sort: sort?.id,
-        direction: sort ? (sort.desc ? 'desc' : 'asc') : undefined,
-    }, {
-        only: ['roles'],
-        preserveState: true,
-        preserveScroll: true,
-        replace: true,
-        onStart: () => (loading.value = true),
-        onFinish: () => (loading.value = false),
-    });
-}, { deep: true });
 
 /* ---------------------------------------------------------------------------
- * Create-role modal
+ * Create / edit modal (one form, two modes)
  * ------------------------------------------------------------------------- */
-const showCreate = ref(false);
+const showForm = ref(false);
+const editingRole = ref(null);
+const isEditing = computed(() => editingRole.value !== null);
 
 const form = useForm({
     name: '',
     selected_permissions: [],
 });
 
-const submit = () => {
-    form
-        .transform((data) => ({
-            ...data,
-            selected_permissions: data.selected_permissions.map((p) => p.label),
-        }))
-        .post(route('manage-roles.store'), {
-            preserveScroll: true,
-            onSuccess: () => {
-                form.reset();
-                showCreate.value = false;
-            },
-        });
+const openCreate = () => {
+    editingRole.value = null;
+    form.reset();
+    form.clearErrors();
+    showForm.value = true;
 };
 
-// Discard any typed input / validation errors when the modal is dismissed.
-watch(showCreate, (open) => {
+const openEdit = (role) => {
+    editingRole.value = role;
+    form.clearErrors();
+    form.name = role.roles;
+    // Re-hydrate the picker with the option objects matching this role's permissions.
+    form.selected_permissions = (props.permissions ?? []).filter(
+        (p) => role.permissions.includes(p.label),
+    );
+    showForm.value = true;
+};
+
+const submit = () => {
+    const options = {
+        preserveScroll: true,
+        onSuccess: () => {
+            form.reset();
+            showForm.value = false;
+        },
+    };
+
+    form.transform((data) => ({
+        ...data,
+        selected_permissions: data.selected_permissions.map((p) => p.label),
+    }));
+
+    if (isEditing.value) {
+        form.put(route('manage-roles.update', editingRole.value.id), options);
+    } else {
+        form.post(route('manage-roles.store'), options);
+    }
+};
+
+// Clear typed input / validation errors when the modal closes.
+watch(showForm, (open) => {
     if (!open) {
         form.reset();
         form.clearErrors();
+        editingRole.value = null;
     }
 });
+
+/* ---------------------------------------------------------------------------
+ * Delete confirmation
+ * ------------------------------------------------------------------------- */
+const {
+    open: showDelete,
+    target: deleteTarget,
+    deleting,
+    ask: askDelete,
+    confirm: confirmDelete,
+} = useDeleteResource('manage-roles.destroy');
 
 /* ---------------------------------------------------------------------------
  * Table columns
@@ -131,10 +156,21 @@ const columns = [
         id: 'actions',
         header: () => h('div', { class: 'text-right' }, 'Actions'),
         enableSorting: false,
-        cell: () =>
+        cell: ({ row }) =>
             h('div', { class: 'flex justify-end gap-1.5' }, [
-                h(Button, { variant: 'outline', size: 'icon-sm', 'aria-label': 'Edit' }, () => h(Pencil, { class: 'size-4' })),
-                h(Button, { variant: 'outline', size: 'icon-sm', class: 'text-destructive hover:text-destructive', 'aria-label': 'Delete' }, () => h(Trash2, { class: 'size-4' })),
+                h(Button, {
+                    variant: 'outline',
+                    size: 'icon-sm',
+                    'aria-label': 'Edit',
+                    onClick: () => openEdit(row.original),
+                }, () => h(Pencil, { class: 'size-4' })),
+                h(Button, {
+                    variant: 'outline',
+                    size: 'icon-sm',
+                    class: 'text-destructive hover:text-destructive',
+                    'aria-label': 'Delete',
+                    onClick: () => askDelete(row.original),
+                }, () => h(Trash2, { class: 'size-4' })),
             ]),
     },
 ];
@@ -147,48 +183,10 @@ const columns = [
         <div class="mt-6">
             <Card>
                 <CardHeader class="flex items-center justify-end">
-                    <Dialog v-model:open="showCreate">
-                        <DialogTrigger as-child>
-                            <Button>
-                                <Plus class="size-4" />
-                                New Role
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent class="sm:max-w-lg">
-                            <form @submit.prevent="submit">
-                                <DialogHeader>
-                                    <DialogTitle>New Role</DialogTitle>
-                                    <DialogDescription>
-                                        Name the role and assign the permissions it should grant.
-                                    </DialogDescription>
-                                </DialogHeader>
-
-                                <div class="space-y-4 py-4">
-                                    <GroupInput
-                                        legend="Role Name"
-                                        placeholder="Role"
-                                        input_type="text"
-                                        v-model="form.name"
-                                        :required="true"
-                                        :err_msg="form.errors.name"
-                                    />
-                                    <div class="grid gap-2">
-                                        <Label>Permissions</Label>
-                                        <Multiselect v-model="form.selected_permissions" :options="permissions" />
-                                    </div>
-                                </div>
-
-                                <DialogFooter>
-                                    <DialogClose as-child>
-                                        <Button type="button" variant="ghost">Cancel</Button>
-                                    </DialogClose>
-                                    <Button type="submit" :disabled="form.processing">
-                                        {{ form.processing ? 'Saving…' : 'Save Role' }}
-                                    </Button>
-                                </DialogFooter>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
+                    <Button @click="openCreate">
+                        <Plus class="size-4" />
+                        New Role
+                    </Button>
                 </CardHeader>
                 <CardContent>
                     <DataTable
@@ -204,5 +202,69 @@ const columns = [
                 </CardContent>
             </Card>
         </div>
+
+        <!-- Create / edit modal -->
+        <Dialog v-model:open="showForm">
+            <DialogContent class="sm:max-w-lg">
+                <form @submit.prevent="submit">
+                    <DialogHeader>
+                        <DialogTitle>{{ isEditing ? 'Edit Role' : 'New Role' }}</DialogTitle>
+                        <DialogDescription>
+                            {{ isEditing
+                                ? 'Update the role name and the permissions it grants.'
+                                : 'Name the role and assign the permissions it should grant.' }}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div class="space-y-4 py-4">
+                        <GroupInput
+                            legend="Role Name"
+                            placeholder="Role"
+                            input_type="text"
+                            v-model="form.name"
+                            :required="true"
+                            :err_msg="form.errors.name"
+                        />
+                        <div class="grid gap-2">
+                            <Label>Permissions</Label>
+                            <Multiselect v-model="form.selected_permissions" :options="permissions" />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <DialogClose as-child>
+                            <Button type="button" variant="ghost">Cancel</Button>
+                        </DialogClose>
+                        <Button type="submit" :disabled="form.processing">
+                            {{ form.processing ? 'Saving…' : (isEditing ? 'Update Role' : 'Save Role') }}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Delete confirmation -->
+        <AlertDialog v-model:open="showDelete">
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Delete this role?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This will permanently delete the
+                        <span class="font-medium text-foreground">{{ deleteTarget?.roles }}</span>
+                        role. This action cannot be undone.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel :disabled="deleting">Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                        class="bg-destructive text-white hover:bg-destructive/90"
+                        :disabled="deleting"
+                        @click.prevent="confirmDelete"
+                    >
+                        {{ deleting ? 'Deleting…' : 'Delete' }}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </div>
 </template>

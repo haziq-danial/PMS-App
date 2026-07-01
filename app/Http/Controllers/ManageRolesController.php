@@ -41,20 +41,6 @@ class ManageRolesController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $permissions = Permission::all()->map(function ($permission) {
-            return [
-                'id' => $permission->id,
-                'label' => $permission->name
-            ];
-        });
-        return inertia('ManageRoles/Create', compact('permissions'));
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -80,19 +66,21 @@ class ManageRolesController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        return inertia('ManageRoles/Edit');
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            'name' => 'required|unique:roles,name,' . $id,
+            'selected_permissions' => 'array',
+        ]);
+
+        $role = Role::findOrFail($id);
+        $role->update(['name' => $request->name]);
+        $role->syncPermissions($request->selected_permissions ?? []);
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        return redirect()->route('manage-roles.index')->with('success', 'Role Updated!');
     }
 
     /**
@@ -100,6 +88,10 @@ class ManageRolesController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $role = Role::findOrFail($id);
+        $role->delete();
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        return redirect()->route('manage-roles.index')->with('success', 'Role Deleted!');
     }
 }
