@@ -1,12 +1,25 @@
 <script setup>
 import { h, ref, watch } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, useForm } from '@inertiajs/vue3';
 import { Plus, Pencil, Trash2, ArrowUpDown } from '@lucide/vue';
 import PageHeader from '@/Components/PageHeader.vue';
 import DataTable from '@/Components/DataTable/DataTable.vue';
+import GroupInput from '@/Components/FormInputs/GroupInput.vue';
+import Multiselect from '@/Components/FormInputs/Multiselect.vue';
 import { Card, CardContent, CardHeader } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
+import { Label } from '@/Components/ui/label';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+    DialogClose,
+    DialogTrigger,
+} from '@/Components/ui/dialog';
 
 const title = 'Manage Roles';
 const pageTitle = ` | ${title}`;
@@ -15,9 +28,13 @@ const user = 'Admin';
 const props = defineProps({
     // Laravel paginator payload: { data, total, current_page, per_page, ... }
     roles: Object,
+    // Options for the create-role permission picker: [{ id, label }]
+    permissions: Array,
 });
 
-// Controlled table state, seeded from the paginator the server sent.
+/* ---------------------------------------------------------------------------
+ * Server-side table state
+ * ------------------------------------------------------------------------- */
 const sorting = ref([]);
 const pagination = ref({
     pageIndex: (props.roles?.current_page ?? 1) - 1,
@@ -25,14 +42,12 @@ const pagination = ref({
 });
 const loading = ref(false);
 
-// Reset to the first page whenever the page size changes.
 watch(() => pagination.value.pageSize, (size, prev) => {
     if (size !== prev && pagination.value.pageIndex !== 0) {
         pagination.value = { ...pagination.value, pageIndex: 0 };
     }
 });
 
-// Reload the current page of roles from the server on any sort/page change.
 watch([sorting, pagination], () => {
     const sort = sorting.value[0];
     router.get(route('manage-roles.index'), {
@@ -50,6 +65,42 @@ watch([sorting, pagination], () => {
     });
 }, { deep: true });
 
+/* ---------------------------------------------------------------------------
+ * Create-role modal
+ * ------------------------------------------------------------------------- */
+const showCreate = ref(false);
+
+const form = useForm({
+    name: '',
+    selected_permissions: [],
+});
+
+const submit = () => {
+    form
+        .transform((data) => ({
+            ...data,
+            selected_permissions: data.selected_permissions.map((p) => p.label),
+        }))
+        .post(route('manage-roles.store'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                form.reset();
+                showCreate.value = false;
+            },
+        });
+};
+
+// Discard any typed input / validation errors when the modal is dismissed.
+watch(showCreate, (open) => {
+    if (!open) {
+        form.reset();
+        form.clearErrors();
+    }
+});
+
+/* ---------------------------------------------------------------------------
+ * Table columns
+ * ------------------------------------------------------------------------- */
 const columns = [
     {
         accessorKey: 'id',
@@ -96,12 +147,48 @@ const columns = [
         <div class="mt-6">
             <Card>
                 <CardHeader class="flex items-center justify-end">
-                    <Button as-child>
-                        <a :href="route('manage-roles.create')">
-                            <Plus class="size-4" />
-                            New Role
-                        </a>
-                    </Button>
+                    <Dialog v-model:open="showCreate">
+                        <DialogTrigger as-child>
+                            <Button>
+                                <Plus class="size-4" />
+                                New Role
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent class="sm:max-w-lg">
+                            <form @submit.prevent="submit">
+                                <DialogHeader>
+                                    <DialogTitle>New Role</DialogTitle>
+                                    <DialogDescription>
+                                        Name the role and assign the permissions it should grant.
+                                    </DialogDescription>
+                                </DialogHeader>
+
+                                <div class="space-y-4 py-4">
+                                    <GroupInput
+                                        legend="Role Name"
+                                        placeholder="Role"
+                                        input_type="text"
+                                        v-model="form.name"
+                                        :required="true"
+                                        :err_msg="form.errors.name"
+                                    />
+                                    <div class="grid gap-2">
+                                        <Label>Permissions</Label>
+                                        <Multiselect v-model="form.selected_permissions" :options="permissions" />
+                                    </div>
+                                </div>
+
+                                <DialogFooter>
+                                    <DialogClose as-child>
+                                        <Button type="button" variant="ghost">Cancel</Button>
+                                    </DialogClose>
+                                    <Button type="submit" :disabled="form.processing">
+                                        {{ form.processing ? 'Saving…' : 'Save Role' }}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
                 </CardHeader>
                 <CardContent>
                     <DataTable

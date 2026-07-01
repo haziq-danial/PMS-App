@@ -1,5 +1,6 @@
 import './bootstrap';
 import '../css/app.css';
+import 'vue-sonner/style.css';
 import { createApp, h } from 'vue'
 import { createInertiaApp, Head, Link } from '@inertiajs/vue3'
 import Layouts from './Pages/Layouts/layouts.vue';

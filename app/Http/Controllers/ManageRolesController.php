@@ -31,7 +31,13 @@ class ManageRolesController extends Controller
                 'permissions' => $role->permissions->pluck('name')->toArray(),
             ]);
 
-        return inertia('ManageRoles/View', compact('roles'));
+        // Options for the "New Role" modal's permission picker.
+        $permissions = Permission::all()->map(fn ($permission) => [
+            'id' => $permission->id,
+            'label' => $permission->name,
+        ]);
+
+        return inertia('ManageRoles/View', compact('roles', 'permissions'));
     }
 
     /**
