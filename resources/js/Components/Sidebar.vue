@@ -1,9 +1,17 @@
 <script setup>
 import { usePage } from '@inertiajs/vue3';
-import { House, LayoutDashboard, Users, Shield, Settings } from '@lucide/vue';
-import { cn } from '@/lib/utils';
-
-const emit = defineEmits(['navigate']);
+import { House, LayoutDashboard, Users, Shield, Settings, Building2 } from '@lucide/vue';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    useSidebar,
+} from '@/Components/ui/sidebar';
 
 // Single source of truth: the route name drives both the link and active state.
 const navItems = [
@@ -15,35 +23,55 @@ const navItems = [
 ];
 
 const page = usePage();
+const { isMobile, setOpenMobile } = useSidebar();
 
 // Compare by section (the part before the first dot) so any sub-route of a
 // section — e.g. `manage-roles.create` — keeps its nav item highlighted.
 const section = (name) => (name ?? '').split('.')[0];
 const isActive = (routeName) =>
     section(page.props.currentRouteName) === section(routeName);
+
+// Close the mobile drawer after following a link.
+const handleNavigate = () => {
+    if (isMobile.value) setOpenMobile(false);
+};
 </script>
 
 <template>
-    <div class="flex h-full w-64 flex-col border-r bg-sidebar text-sidebar-foreground">
-        <div class="flex h-14 items-center gap-2 border-b px-5 font-semibold tracking-tight">
-            PETAKOM
-        </div>
-        <nav class="flex-1 space-y-1 p-3">
-            <Link
-                v-for="item in navItems"
-                :key="item.routeName"
-                :href="route(item.routeName)"
-                @click="emit('navigate')"
-                :class="cn(
-                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                    isActive(item.routeName)
-                        ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                )"
-            >
-                <component :is="item.icon" class="size-4 shrink-0" />
-                <span>{{ item.title }}</span>
-            </Link>
-        </nav>
-    </div>
+    <Sidebar collapsible="icon">
+        <SidebarHeader class="border-b">
+            <SidebarMenu>
+                <SidebarMenuItem>
+                    <SidebarMenuButton size="lg" as-child :tooltip="'PETAKOM'">
+                        <Link :href="route('home')" @click="handleNavigate">
+                            <div class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                                <Building2 class="size-4" />
+                            </div>
+                            <span class="font-semibold tracking-tight">PETAKOM</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarHeader>
+        <SidebarContent>
+            <SidebarGroup>
+                <SidebarGroupContent>
+                    <SidebarMenu>
+                        <SidebarMenuItem v-for="item in navItems" :key="item.routeName">
+                            <SidebarMenuButton
+                                as-child
+                                :is-active="isActive(item.routeName)"
+                                :tooltip="item.title"
+                            >
+                                <Link :href="route(item.routeName)" @click="handleNavigate">
+                                    <component :is="item.icon" />
+                                    <span>{{ item.title }}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </SidebarGroupContent>
+            </SidebarGroup>
+        </SidebarContent>
+    </Sidebar>
 </template>

@@ -1,7 +1,10 @@
 <script setup>
-import { Menu, User, LogOut, Settings } from '@lucide/vue';
+import { User, LogOut, Settings } from '@lucide/vue';
 import { Button } from '@/Components/ui/button';
 import { Avatar, AvatarFallback } from '@/Components/ui/avatar';
+import { Separator } from '@/Components/ui/separator';
+import { SidebarTrigger } from '@/Components/ui/sidebar';
+import ThemeToggle from '@/Components/ThemeToggle.vue';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -10,17 +13,16 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
-
-defineEmits(['toggle-sidebar']);
 </script>
 
 <template>
     <header class="flex h-14 items-center gap-2 border-b bg-background px-4">
-        <Button variant="ghost" size="icon" class="lg:hidden" @click="$emit('toggle-sidebar')" aria-label="Open sidebar">
-            <Menu class="size-5" />
-        </Button>
+        <SidebarTrigger class="-ml-1" aria-label="Toggle sidebar" />
+        <Separator orientation="vertical" class="mr-1 h-4" />
 
         <div class="flex-1 font-medium">PETAKOM</div>
+
+        <ThemeToggle />
 
         <DropdownMenu>
             <DropdownMenuTrigger as-child>
