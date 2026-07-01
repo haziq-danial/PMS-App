@@ -1,5 +1,6 @@
 <script setup>
-import { h } from 'vue';
+import { h, ref, watch } from 'vue';
+import { router } from '@inertiajs/vue3';
 import { Plus, Pencil, Trash2, ArrowUpDown } from '@lucide/vue';
 import PageHeader from '@/Components/PageHeader.vue';
 import DataTable from '@/Components/DataTable/DataTable.vue';
@@ -12,8 +13,42 @@ const pageTitle = ` | ${title}`;
 const user = 'Admin';
 
 const props = defineProps({
-    roles: Array,
+    // Laravel paginator payload: { data, total, current_page, per_page, ... }
+    roles: Object,
 });
+
+// Controlled table state, seeded from the paginator the server sent.
+const sorting = ref([]);
+const pagination = ref({
+    pageIndex: (props.roles?.current_page ?? 1) - 1,
+    pageSize: props.roles?.per_page ?? 5,
+});
+const loading = ref(false);
+
+// Reset to the first page whenever the page size changes.
+watch(() => pagination.value.pageSize, (size, prev) => {
+    if (size !== prev && pagination.value.pageIndex !== 0) {
+        pagination.value = { ...pagination.value, pageIndex: 0 };
+    }
+});
+
+// Reload the current page of roles from the server on any sort/page change.
+watch([sorting, pagination], () => {
+    const sort = sorting.value[0];
+    router.get(route('manage-roles.index'), {
+        page: pagination.value.pageIndex + 1,
+        per_page: pagination.value.pageSize,
+        sort: sort?.id,
+        direction: sort ? (sort.desc ? 'desc' : 'asc') : undefined,
+    }, {
+        only: ['roles'],
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+        onStart: () => (loading.value = true),
+        onFinish: () => (loading.value = false),
+    });
+}, { deep: true });
 
 const columns = [
     {
@@ -69,7 +104,16 @@ const columns = [
                     </Button>
                 </CardHeader>
                 <CardContent>
-                    <DataTable :columns="columns" :data="roles ?? []" empty-message="No roles found." />
+                    <DataTable
+                        manual
+                        :columns="columns"
+                        :data="roles?.data ?? []"
+                        :row-count="roles?.total ?? 0"
+                        :loading="loading"
+                        v-model:sorting="sorting"
+                        v-model:pagination="pagination"
+                        empty-message="No roles found."
+                    />
                 </CardContent>
             </Card>
         </div>

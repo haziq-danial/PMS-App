@@ -13,15 +13,24 @@ class ManageRolesController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $roles = Role::all()->map(function ($role) {
-            return [
+        // Map the front-end column keys to real DB columns for safe sorting.
+        $sortable = ['id' => 'id', 'roles' => 'name'];
+        $sort = $sortable[$request->query('sort')] ?? 'id';
+        $direction = $request->query('direction') === 'desc' ? 'desc' : 'asc';
+
+        $roles = Role::query()
+            ->with('permissions:id,name')
+            ->orderBy($sort, $direction)
+            ->paginate($request->integer('per_page', 5))
+            ->withQueryString()
+            ->through(fn ($role) => [
                 'id' => $role->id,
                 'roles' => $role->name,
-                'permissions' => $role->permissions->pluck('name')->toArray()
-            ];
-        });
+                'permissions' => $role->permissions->pluck('name')->toArray(),
+            ]);
+
         return inertia('ManageRoles/View', compact('roles'));
     }
 
