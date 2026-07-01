@@ -14,7 +14,16 @@ export default defineConfig({
         tailwindcss(),
     ],
     server: {
+        host: 'localhost',
+        // HMR websocket the browser connects back to for hot updates.
+        hmr: {
+            host: 'localhost',
+        },
         watch: {
+            // Native FS events are unreliable under Laragon/Windows, so poll
+            // for changes to guarantee edits trigger a hot update.
+            usePolling: true,
+            interval: 300,
             ignored: ['**/storage/framework/views/**'],
         },
     },
