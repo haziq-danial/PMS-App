@@ -1,4 +1,4 @@
-import { ref, watch, onMounted } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 import { router } from '@inertiajs/vue3';
 
 /**
@@ -46,15 +46,19 @@ export function useServerTable({ routeName, paginator, only, storageKey }) {
         pageSize: saved.pageSize ?? serverPageSize,
     });
     const loading = ref(false);
-
-    const reload = () => {
+    const query = computed(() => {
         const sort = sorting.value[0];
-        router.get(route(routeName), {
+
+        return {
             page: pagination.value.pageIndex + 1,
             per_page: pagination.value.pageSize,
             sort: sort?.id,
             direction: sort ? (sort.desc ? 'desc' : 'asc') : undefined,
-        }, {
+        };
+    });
+
+    const reload = () => {
+        router.get(route(routeName), query.value, {
             only,
             preserveState: true,
             preserveScroll: true,
@@ -90,5 +94,5 @@ export function useServerTable({ routeName, paginator, only, storageKey }) {
         }
     });
 
-    return { sorting, pagination, loading };
+    return { sorting, pagination, loading, query };
 }

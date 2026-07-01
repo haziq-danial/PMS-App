@@ -28,6 +28,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
+import UnderscoreInput from '@/Components/FormInputs/UnderscoreInput.vue';
 
 const title = 'Manage Permissions';
 const pageTitle = ` | ${title}`;
@@ -41,7 +42,7 @@ const props = defineProps({
 /* ---------------------------------------------------------------------------
  * Server-side table state
  * ------------------------------------------------------------------------- */
-const { sorting, pagination, loading } = useServerTable({
+const { sorting, pagination, loading, query: tableQuery } = useServerTable({
     routeName: 'manage-permissions.index',
     paginator: props.permissions,
     only: ['permissions'],
@@ -82,9 +83,12 @@ const submit = () => {
     };
 
     if (isEditing.value) {
-        form.put(route('manage-permissions.update', editing.value.id), options);
+        form.put(route('manage-permissions.update', {
+            permission_id: editing.value.id,
+            ...tableQuery.value,
+        }), options);
     } else {
-        form.post(route('manage-permissions.store'), options);
+        form.post(route('manage-permissions.store', tableQuery.value), options);
     }
 };
 
@@ -105,7 +109,7 @@ const {
     deleting,
     ask: askDelete,
     confirm: confirmDelete,
-} = useDeleteResource('manage-permissions.destroy');
+} = useDeleteResource('manage-permissions.destroy', tableQuery);
 
 /* ---------------------------------------------------------------------------
  * Table columns
@@ -197,7 +201,19 @@ const columns = [
                             v-model="form.name"
                             :required="true"
                             :err_msg="form.errors.name"
-                        />
+                        >
+                            <template #default="{ id }">
+                                <UnderscoreInput
+                                    :id="id"
+                                    v-model="form.name"
+                                    name="name"
+                                    autocomplete="name"
+                                    placeholder="permission"
+                                    :aria-describedby="form.errors.name ? `${id}-message` : undefined"
+                                    :aria-invalid="!!form.errors.name"
+                                />
+                            </template>
+                        </GroupInput>
                     </div>
 
                     <DialogFooter>

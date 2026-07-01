@@ -46,7 +46,7 @@ const props = defineProps({
 /* ---------------------------------------------------------------------------
  * Server-side table state
  * ------------------------------------------------------------------------- */
-const { sorting, pagination, loading } = useServerTable({
+const { sorting, pagination, loading, query: tableQuery } = useServerTable({
     routeName: 'manage-roles.index',
     paginator: props.roles,
     only: ['roles'],
@@ -97,9 +97,12 @@ const submit = () => {
     }));
 
     if (isEditing.value) {
-        form.put(route('manage-roles.update', editingRole.value.id), options);
+        form.put(route('manage-roles.update', {
+            role_id: editingRole.value.id,
+            ...tableQuery.value,
+        }), options);
     } else {
-        form.post(route('manage-roles.store'), options);
+        form.post(route('manage-roles.store', tableQuery.value), options);
     }
 };
 
@@ -121,7 +124,7 @@ const {
     deleting,
     ask: askDelete,
     confirm: confirmDelete,
-} = useDeleteResource('manage-roles.destroy');
+} = useDeleteResource('manage-roles.destroy', tableQuery);
 
 /* ---------------------------------------------------------------------------
  * Table columns

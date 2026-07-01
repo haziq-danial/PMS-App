@@ -1,6 +1,24 @@
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 
+function appendQuery(url, query = {}) {
+    const params = new URLSearchParams();
+
+    Object.entries(query).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+            params.set(key, value);
+        }
+    });
+
+    const queryString = params.toString();
+
+    if (!queryString) {
+        return url;
+    }
+
+    return `${url}${url.includes('?') ? '&' : '?'}${queryString}`;
+}
+
 /**
  * Delete-with-confirmation state for a single resource row. Drives an
  * AlertDialog: call `ask(item)` to open it and `confirm()` to perform the
@@ -8,6 +26,8 @@ import { router } from '@inertiajs/vue3';
  *
  * @param {string} routeName  Ziggy route name for the destroy endpoint
  *                            (expects the item id as its route parameter).
+ * @param {import('vue').Ref<Object>|Object} [query] Query params to preserve
+ *                            after the delete redirect.
  * @returns {{
  *   open: import('vue').Ref<boolean>,
  *   target: import('vue').Ref<Object|null>,
@@ -16,7 +36,7 @@ import { router } from '@inertiajs/vue3';
  *   confirm: () => void,
  * }}
  */
-export function useDeleteResource(routeName) {
+export function useDeleteResource(routeName, query = {}) {
     const open = ref(false);
     const target = ref(null);
     const deleting = ref(false);
@@ -28,7 +48,9 @@ export function useDeleteResource(routeName) {
 
     const confirm = () => {
         if (!target.value) return;
-        router.delete(route(routeName, target.value.id), {
+        const currentQuery = query?.value ?? query;
+
+        router.delete(appendQuery(route(routeName, target.value.id), currentQuery), {
             preserveScroll: true,
             onStart: () => (deleting.value = true),
             onFinish: () => {

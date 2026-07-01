@@ -8,6 +8,11 @@ use Spatie\Permission\PermissionRegistrar;
 
 class ManagePermissionsController extends Controller
 {
+    private function tableQuery(Request $request): array
+    {
+        return $request->only(['page', 'per_page', 'sort', 'direction']);
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -40,7 +45,7 @@ class ManagePermissionsController extends Controller
         Permission::create(['name' => $request->name]);
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        return redirect()->route('manage-permissions.index')->with('success', 'Permission Created!');
+        return redirect()->route('manage-permissions.index', $this->tableQuery($request))->with('success', 'Permission Created!');
     }
 
     /**
@@ -62,18 +67,18 @@ class ManagePermissionsController extends Controller
         $permission->update(['name' => $request->name]);
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        return redirect()->route('manage-permissions.index')->with('success', 'Permission Updated!');
+        return redirect()->route('manage-permissions.index', $this->tableQuery($request))->with('success', 'Permission Updated!');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
         $permission = Permission::findOrFail($id);
         $permission->delete();
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        return redirect()->route('manage-permissions.index')->with('success', 'Permission Deleted!');
+        return redirect()->route('manage-permissions.index', $this->tableQuery($request))->with('success', 'Permission Deleted!');
     }
 }

@@ -28,7 +28,7 @@ key, `preserveState`, and resetting to page 1 when the page size changes.
 ### Signature
 
 ```js
-useServerTable({ routeName, paginator, only }) => { sorting, pagination, loading }
+useServerTable({ routeName, paginator, only }) => { sorting, pagination, loading, query }
 ```
 
 | Param       | Type       | Description                                                        |
@@ -44,13 +44,18 @@ useServerTable({ routeName, paginator, only }) => { sorting, pagination, loading
 | `sorting`    | `[{ id, desc }]`                          | `<DataTable v-model:sorting>`               |
 | `pagination` | `{ pageIndex, pageSize }` (0-based index) | `<DataTable v-model:pagination>`            |
 | `loading`    | `boolean`                                 | `<DataTable :loading>`                      |
+| `query`      | `ComputedRef<{ page, per_page, sort, direction }>` | Pass to [`useDeleteResource`](#usedeleteresource) to preserve table state across a delete redirect. |
+
+`query` is the same params object sent on every reload (current page, page size, and
+active sort). Exposing it lets a delete request re-request the same slice of data, so
+the user stays on their page/sort after a row is removed.
 
 ### Usage
 
 ```js
 const props = defineProps({ roles: Object }); // Laravel paginator
 
-const { sorting, pagination, loading } = useServerTable({
+const { sorting, pagination, loading, query } = useServerTable({
     routeName: 'manage-roles.index',
     paginator: props.roles,
     only: ['roles'],
@@ -93,12 +98,16 @@ composable does not toast itself.
 ### Signature
 
 ```js
-useDeleteResource(routeName) => { open, target, deleting, ask, confirm }
+useDeleteResource(routeName, query?) => { open, target, deleting, ask, confirm }
 ```
 
 | Param       | Type     | Description                                                               |
 | ----------- | -------- | ------------------------------------------------------------------------- |
 | `routeName` | `string` | Ziggy route name for the destroy endpoint; the item `id` is passed as its route parameter. |
+| `query`     | `Ref<Object> \| Object` | Optional. Query params to append to the destroy URL so they are preserved on the redirect after delete. Pass the `query` ref from [`useServerTable`](#useservertable) to keep the current page/sort. Defaults to `{}`. |
+
+Empty, `null`, and `undefined` values are dropped before the query string is built, and
+a ref is unwrapped at call time so the *current* table state is used on each delete.
 
 ### Returns
 
@@ -115,14 +124,19 @@ useDeleteResource(routeName) => { open, target, deleting, ask, confirm }
 Alias the returns to page-friendly names so templates read naturally:
 
 ```js
+const { sorting, pagination, loading, query } = useServerTable({ /* … */ });
+
 const {
     open: showDelete,
     target: deleteTarget,
     deleting,
     ask: askDelete,
     confirm: confirmDelete,
-} = useDeleteResource('manage-roles.destroy');
+} = useDeleteResource('manage-roles.destroy', query);
 ```
+
+Passing `query` keeps the user on the same page and sort order after the deleted row's
+list is re-fetched. Omit the second argument if the resource is not paged.
 
 Trigger it from a row action (TanStack column cell):
 

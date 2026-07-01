@@ -10,6 +10,11 @@ use Spatie\Permission\PermissionRegistrar;
 
 class ManageRolesController extends Controller
 {
+    private function tableQuery(Request $request): array
+    {
+        return $request->only(['page', 'per_page', 'sort', 'direction']);
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -54,7 +59,7 @@ class ManageRolesController extends Controller
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        return redirect()->route('manage-roles.index')->with('success', 'Role Created!');
+        return redirect()->route('manage-roles.index', $this->tableQuery($request))->with('success', 'Role Created!');
     }
 
     /**
@@ -80,18 +85,18 @@ class ManageRolesController extends Controller
         $role->syncPermissions($request->selected_permissions ?? []);
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        return redirect()->route('manage-roles.index')->with('success', 'Role Updated!');
+        return redirect()->route('manage-roles.index', $this->tableQuery($request))->with('success', 'Role Updated!');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
         $role = Role::findOrFail($id);
         $role->delete();
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        return redirect()->route('manage-roles.index')->with('success', 'Role Deleted!');
+        return redirect()->route('manage-roles.index', $this->tableQuery($request))->with('success', 'Role Deleted!');
     }
 }
