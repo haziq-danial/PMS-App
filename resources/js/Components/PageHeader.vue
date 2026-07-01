@@ -1,25 +1,37 @@
+<script setup>
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from '@/Components/ui/breadcrumb';
+
+defineProps({
+    title: {
+        type: String,
+        required: true,
+    },
+    userType: {
+        type: String,
+        required: true,
+    },
+});
+</script>
+
 <template>
-    <div class="flex justify-between items-center">
-        <p class="font-medium text-lg">{{ title }}</p>
-        <div class="breadcrumbs p-0 mr-1 text-sm inline">
-            <ul>
-                <li>PETAKOM</li>
-                <li>{{ userType }}</li>
-                <li>{{ title }}</li>
-            </ul>
-        </div>
+    <div class="flex items-center justify-between gap-4">
+        <h1 class="text-lg font-semibold tracking-tight">{{ title }}</h1>
+        <Breadcrumb>
+            <BreadcrumbList>
+                <BreadcrumbItem>PETAKOM</BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>{{ userType }}</BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                    <BreadcrumbPage>{{ title }}</BreadcrumbPage>
+                </BreadcrumbItem>
+            </BreadcrumbList>
+        </Breadcrumb>
     </div>
 </template>
-
-<script setup>
-    defineProps({
-        title: {
-            type: String,
-            required: true
-        },
-        userType: {
-            type: String,
-            required: true
-        }
-    });
-</script>

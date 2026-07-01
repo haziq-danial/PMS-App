@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { X } from '@lucide/vue';
 
 const props = defineProps({
   options: { type: Array, required: true },
@@ -85,19 +86,17 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside));
 
 <template>
   <div ref="container" class="relative w-full max-w-md" @keydown="handleKeyDown">
-    <div 
-      class="min-h-10.5 p-1 flex flex-wrap gap-2 border rounded-lg bg-white shadow-sm focus-within:ring-2 focus-within:ring-primary transition-all"
+    <div
+      class="flex min-h-9 flex-wrap gap-1.5 rounded-md border border-input bg-transparent p-1.5 shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50"
       @click="isOpen = true"
     >
-      <span 
+      <span
         v-for="item in modelValue" :key="item.id"
-        class="flex items-center gap-1 px-2 py-1 bg-purple-100 text-primary text-sm font-medium rounded-md"
+        class="inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
       >
         {{ item.label }}
-        <button @click.stop="removeOption(item.id)" class="hover:bg-purple-200 rounded-full p-0.5">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+        <button type="button" @click.stop="removeOption(item.id)" class="rounded-full p-0.5 hover:bg-accent">
+          <X class="size-3" />
         </button>
       </span>
 
@@ -105,24 +104,24 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside));
         v-model="searchQuery"
         type="text"
         placeholder="Search..."
-        class="flex-1 min-w-20 outline-none text-sm p-1"
+        class="min-w-20 flex-1 bg-transparent p-0.5 text-sm outline-none placeholder:text-muted-foreground"
         @focus="isOpen = true"
       />
     </div>
 
-    <div 
+    <div
       v-if="isOpen && filteredOptions.length > 0"
-      class="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-auto"
+      class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
     >
-      <ul class="py-1">
-        <li 
-          v-for="(option, index) in filteredOptions" 
+      <ul>
+        <li
+          v-for="(option, index) in filteredOptions"
           :key="option.id"
           @click="selectOption(option)"
           @mouseenter="activeIndex = index"
           :class="[
-            'px-4 py-2 cursor-pointer text-sm',
-            activeIndex === index ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'
+            'cursor-pointer rounded-sm px-2 py-1.5 text-sm',
+            activeIndex === index ? 'bg-accent text-accent-foreground' : 'text-popover-foreground'
           ]"
         >
           {{ option.label }}

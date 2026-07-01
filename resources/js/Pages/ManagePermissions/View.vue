@@ -1,54 +1,65 @@
 <script setup>
-import { ref } from 'vue';
-import PlusIcon from '../../Components/Icons/PlusIcon.vue';
-import PageHeader from '../../Components/PageHeader.vue';
-import { DataTable, Column, Button } from 'primevue';
+import { h } from 'vue';
+import { Plus, Pencil, Trash2, ArrowUpDown } from '@lucide/vue';
+import PageHeader from '@/Components/PageHeader.vue';
+import DataTable from '@/Components/DataTable/DataTable.vue';
+import { Card, CardContent, CardHeader } from '@/Components/ui/card';
+import { Button } from '@/Components/ui/button';
 
-
-const title = "Manage Permissions";
+const title = 'Manage Permissions';
 const pageTitle = ` | ${title}`;
-const user = "Admin";
+const user = 'Admin';
 
 const props = defineProps({
-    permissions: Array
+    permissions: Array,
 });
 
+const columns = [
+    {
+        accessorKey: 'id',
+        header: '#',
+        cell: ({ row }) => h('span', { class: 'text-muted-foreground' }, row.getValue('id')),
+    },
+    {
+        accessorKey: 'name',
+        header: ({ column }) =>
+            h(Button, {
+                variant: 'ghost',
+                class: '-ml-3 h-8',
+                onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+            }, () => ['Name', h(ArrowUpDown, { class: 'size-4' })]),
+    },
+    {
+        id: 'actions',
+        header: () => h('div', { class: 'text-right' }, 'Actions'),
+        enableSorting: false,
+        cell: () =>
+            h('div', { class: 'flex justify-end gap-1.5' }, [
+                h(Button, { variant: 'outline', size: 'icon-sm', 'aria-label': 'Edit' }, () => h(Pencil, { class: 'size-4' })),
+                h(Button, { variant: 'outline', size: 'icon-sm', class: 'text-destructive hover:text-destructive', 'aria-label': 'Delete' }, () => h(Trash2, { class: 'size-4' })),
+            ]),
+    },
+];
 </script>
 
 <template>
     <div>
-
-        <Head :title="pageTitle"></Head>
+        <Head :title="pageTitle" />
         <PageHeader :title="title" :user-type="user" />
         <div class="mt-6">
-            <div class="flex md:flex-row md:flex-wrap">
-                <div class="card w-full gap-0 bg-white overflow-visible rounded-md shadow">
-                    <div class="card-body p-2">
-                        <!-- table header -->
-                        <div class="flex p-10 pb-0 pt-5 justify-end gap-3 w">
-                            <a :href="route('manage-permissions.create')" class="btn btn-primary">
-                                <PlusIcon class="size-[1.2em]" />
-                                New Permission
-                            </a>
-                        </div>
-                        <div class="mt-0 pt-0 overflow-x-auto p-10">
-                            <DataTable :value="permissions" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]">
-                                <template #empty> No permissions found </template>
-                                <Column field="id" header="#"></Column>
-                                <Column field="name" header="Name"></Column>
-                                <Column headerStyle="width: 5rem; text-align: center"
-                                    bodyStyle="text-align: center; overflow: visible; display: flex; gap: 10px;">
-                                    <template #body>
-                                        <Button type="button" icon="pi pi-pencil" severity="secondary" variant="outlined" rounded />
-                                        <Button type="button" icon="pi pi-trash" severity="danger" variant="outlined" rounded />
-                                    </template>
-                                </Column>
-                            </DataTable>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+            <Card>
+                <CardHeader class="flex items-center justify-end">
+                    <Button as-child>
+                        <a :href="route('manage-permissions.create')">
+                            <Plus class="size-4" />
+                            New Permission
+                        </a>
+                    </Button>
+                </CardHeader>
+                <CardContent>
+                    <DataTable :columns="columns" :data="permissions ?? []" empty-message="No permissions found." />
+                </CardContent>
+            </Card>
         </div>
     </div>
 </template>

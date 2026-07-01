@@ -1,50 +1,45 @@
-<template>
-    <dialog ref="modalRef" class="modal" @close="closeModal">
-        <div :class="['modal-box', size]">
-            <h3 class="font-bold text-lg" v-if="title">{{ title }}</h3>
-
-            <div class="py-4">
-                <slot>Default modal content goes here.</slot>
-            </div>
-
-            <div class="modal-action">
-                <form method="dialog">
-                    <button class="btn" @click="closeModal">Close</button>
-                </form>
-            </div>
-        </div>
-
-        <form v-if="dismissable" method="dialog" class="modal-backdrop">
-            <button @click="closeModal">close</button>
-        </form>
-    </dialog>
-</template>
-
 <script setup>
-import { ref, watch } from 'vue';
+import { computed } from 'vue';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+    DialogClose,
+} from '@/Components/ui/dialog';
+import { Button } from '@/Components/ui/button';
 
 const props = defineProps({
     title: String,
     modelValue: Boolean,
     size: String,
-    dismissable: {
-        type: Boolean,
-        default: true
-    }
 });
 
 const emit = defineEmits(['update:modelValue']);
-const modalRef = ref(null);
 
-watch(() => props.modelValue, (isOpen) => {
-    if (isOpen) {
-        modalRef.value?.showModal();
-    } else {
-        modalRef.value?.close();
-    }
+const open = computed({
+    get: () => props.modelValue,
+    set: (val) => emit('update:modelValue', val),
 });
-
-const closeModal = () => {
-    emit('update:modelValue', false);
-}
 </script>
+
+<template>
+    <Dialog v-model:open="open">
+        <DialogContent :class="size">
+            <DialogHeader v-if="title">
+                <DialogTitle>{{ title }}</DialogTitle>
+            </DialogHeader>
+
+            <div class="py-2">
+                <slot>Default modal content goes here.</slot>
+            </div>
+
+            <DialogFooter>
+                <DialogClose as-child>
+                    <Button variant="outline">Close</Button>
+                </DialogClose>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+</template>

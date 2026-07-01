@@ -1,40 +1,52 @@
-<script setup lang="ts">
-import SideBarIcon from './Icons/SideBarIcon.vue';
+<script setup>
+import { Menu, User, LogOut, Settings } from '@lucide/vue';
+import { Button } from '@/Components/ui/button';
+import { Avatar, AvatarFallback } from '@/Components/ui/avatar';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
 
+defineEmits(['toggle-sidebar']);
 </script>
 
 <template>
-    <nav class="navbar w-full shadow-[0_4px_6px_-4px_rgb(0,0,0,0.1)]">
-        <label for="my-drawer-4" aria-label="open sidebar" class="btn btn-square btn-ghost">
-            <!-- Sidebar toggle icon -->
-            <SideBarIcon class="my-1.5 inline-block size-4" />
-        </label>
-        <div class="flex-1">
-            <div class="px-4">PETAKOM</div>
-        </div>
-        <div class="flex-none">
-            <div class="dropdown dropdown-end">
-                <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar avatar-placeholder mr-5">
-                    <div class="bg-neutral text-neutral-content w-10 rounded-full">
-                        <span>H</span>
-                    </div>
-                </div>
+    <header class="flex h-14 items-center gap-2 border-b bg-background px-4">
+        <Button variant="ghost" size="icon" class="lg:hidden" @click="$emit('toggle-sidebar')" aria-label="Open sidebar">
+            <Menu class="size-5" />
+        </Button>
 
-                <ul tabindex="-1"
-                    class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
-                    <li>
-                        <a href="#" class="justify-between">
-                            Profile
-                        </a>
-                    </li>
-                    <li>
-                        <a>Settings</a>
-                    </li>
-                    <li>
-                        <a>Logout</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+        <div class="flex-1 font-medium">PETAKOM</div>
+
+        <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+                <Button variant="ghost" size="icon" class="rounded-full" aria-label="Account menu">
+                    <Avatar class="size-8">
+                        <AvatarFallback>H</AvatarFallback>
+                    </Avatar>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" class="w-48">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                    <User class="size-4" />
+                    Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                    <Settings class="size-4" />
+                    Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                    <LogOut class="size-4" />
+                    Logout
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    </header>
 </template>
